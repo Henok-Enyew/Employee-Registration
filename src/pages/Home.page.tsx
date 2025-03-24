@@ -1,11 +1,11 @@
-import { ColorSchemeToggle } from '../components/ColorSchemeToggle/ColorSchemeToggle';
-import { Welcome } from '../components/Welcome/Welcome';
+import EmployeeTable from '@/components/EmployeeTable/EmployeeTable';
+import { NavBar } from '@/components/NavBar/NavBar';
 
 export function HomePage() {
   return (
     <>
-      <Welcome />
-      <ColorSchemeToggle />
+      <NavBar />
+      <EmployeeTable />
     </>
   );
 }
