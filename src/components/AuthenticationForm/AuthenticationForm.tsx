@@ -1,8 +1,9 @@
+import { useNavigate } from 'react-router-dom';
 import {
   Anchor,
   Button,
   Checkbox,
-  //   Divider,
+  Divider,
   Group,
   Paper,
   PaperProps,
@@ -13,13 +14,24 @@ import {
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { upperFirst, useToggle } from '@mantine/hooks';
+import { notifications } from '@mantine/notifications';
+import { useAuthStore } from '@/store/store';
 
 // import { GoogleButton } from './GoogleButton';
 // import { TwitterButton } from './TwitterButton';
 
+type FormValues = {
+  email: string;
+  name: string;
+  password: string;
+  terms: boolean;
+};
+
 export function AuthenticationForm(props: PaperProps) {
+  const { register, login } = useAuthStore();
+  const navigate = useNavigate();
   const [type, toggle] = useToggle(['login', 'register']);
-  const form = useForm({
+  const form = useForm<FormValues>({
     initialValues: {
       email: '',
       name: '',
@@ -32,6 +44,50 @@ export function AuthenticationForm(props: PaperProps) {
       password: (val) => (val.length <= 6 ? 'Password should include at least 6 characters' : null),
     },
   });
+
+  const handleRegister = async (values: FormValues) => {
+    const success = await register(values.name, values.email, values.password);
+    if (success) {
+      // navigate('/home');
+      notifications.show({
+        title: 'Sucessfully registered',
+        message: 'Welcome to Employee Registration system',
+      });
+      toggle();
+    } else {
+      notifications.show({
+        title: 'Failed to register',
+        message: 'Try using another email or try again later',
+        color: 'red',
+      });
+    }
+  };
+  const handleLogin = async (values: FormValues) => {
+    const success = await login(values.email, values.password);
+    if (success) {
+      // await fetchUser();
+      navigate('/home');
+      notifications.show({
+        title: 'Logged in succesfully',
+        message: 'Welcome to Employee Registration system',
+        color: 'green',
+      });
+    } else {
+      notifications.show({
+        title: 'Failed to Login',
+        message: 'Email or Password provided is incorrect',
+        color: 'red',
+      });
+    }
+  };
+
+  const handleSubmit = (values: FormValues) => {
+    if (type === 'register') {
+      handleRegister(values);
+    } else {
+      handleLogin(values);
+    }
+  };
 
   return (
     <Paper
@@ -48,7 +104,8 @@ export function AuthenticationForm(props: PaperProps) {
       <Text size="lg" fw={500}>
         Welcome Admin's {type}
       </Text>
-      <form onSubmit={form.onSubmit(() => {})}>
+      <Divider m={10} />
+      <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack>
           {type === 'register' && (
             <TextInput
@@ -63,7 +120,7 @@ export function AuthenticationForm(props: PaperProps) {
           <TextInput
             required
             label="Email"
-            placeholder="hello@mantine.dev"
+            placeholder="hello@employee.org"
             value={form.values.email}
             onChange={(event) => form.setFieldValue('email', event.currentTarget.value)}
             error={form.errors.email && 'Invalid email'}
